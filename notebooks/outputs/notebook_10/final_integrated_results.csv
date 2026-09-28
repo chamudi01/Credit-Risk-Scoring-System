@@ -1,0 +1,13 @@
+Section,Metric,Value
+Model,Algorithm,XGBoost
+Model,Training Observations,19200
+Model,Test Observations,6000
+Threshold,Selected Threshold,0.24
+Threshold,Accuracy,0.7796666666666666
+Threshold,Balanced Accuracy,0.7174478408649086
+Threshold,Precision,0.5015595757953837
+Threshold,Recall,0.6058779201205727
+Probability,ROC-AUC,0.7805323467510693
+Probability,PR-AUC,0.5601524759805522
+Probability,Brier Score,0.1350420117378235
+Risk,High-Risk Actual Default Rate,0.6689847009735744
