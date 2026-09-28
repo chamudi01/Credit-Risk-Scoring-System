@@ -1,0 +1,5 @@
+Category,Count,Proportion
+Actual Non-Default,4673,0.7788333333333334
+Actual Default,1327,0.22116666666666668
+Predicted Non-Default,4861,0.8101666666666667
+Predicted Default,1139,0.18983333333333333

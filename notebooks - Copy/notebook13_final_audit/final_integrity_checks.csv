@@ -1,0 +1,11 @@
+Check,Passed
+Test size is 6000,True
+Probability length matches target length,True
+Prediction length matches target length,True
+Probabilities are finite,True
+"Probabilities are within [0, 1]",True
+"Threshold is within (0, 1)",True
+Confusion matrix total equals test size,True
+Actual class counts equal test size,True
+Predicted class counts equal test size,True
+Metrics are finite,True
