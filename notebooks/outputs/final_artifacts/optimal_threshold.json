@@ -1,0 +1,6 @@
+{
+    "selected_threshold": 0.31,
+    "threshold_source": "calibration_set",
+    "selection_metric": "F1",
+    "test_set_used_for_threshold_selection": false
+}
