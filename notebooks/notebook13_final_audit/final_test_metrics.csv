@@ -1,0 +1,16 @@
+Metric,Value
+Classification Threshold,0.31
+Accuracy,0.7973333333333333
+Balanced Accuracy,0.680496804503609
+Precision,0.5487269534679543
+Recall,0.47098718914845517
+F1 Score,0.5068937550689375
+ROC-AUC,0.7615833619708595
+PR-AUC,0.5261684303767874
+Brier Score,0.13961512905304493
+Log Loss,0.44370316117843034
+True Negatives,4159.0
+False Positives,514.0
+False Negatives,702.0
+True Positives,625.0
+Test Observations,6000.0
