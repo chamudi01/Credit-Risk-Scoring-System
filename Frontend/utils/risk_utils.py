@@ -39,6 +39,8 @@ def load_sample_customers():
     missing = [c for c in FEATURES if c not in df.columns]
     if missing:
         raise ValueError(f"Sample data is missing model features: {missing}")
+    if "Customer_ID" not in df.columns:
+        df.insert(0, "Customer_ID", [f"R{i + 1:04d}" for i in range(len(df))])
     return df
 
 
@@ -188,3 +190,91 @@ def explain_prediction(model, input_df, top_n=5):
             return agg, "Global model feature importance (SHAP fallback)"
         except Exception as exc:
             return pd.DataFrame(), f"Explanation unavailable: {exc}"
+
+
+# ---------------------------------------------------------
+# Reference data shared by the pages
+# ---------------------------------------------------------
+
+BAND_ORDER = list(RISK_BANDS.keys())
+
+# Oldest month first, the way a statement history reads.
+# (month, repayment status, statement balance, payment made)
+HISTORY_MONTHS = [
+    ("April", "PAY_6", "BILL_AMT6", "PAY_AMT6"),
+    ("May", "PAY_5", "BILL_AMT5", "PAY_AMT5"),
+    ("June", "PAY_4", "BILL_AMT4", "PAY_AMT4"),
+    ("July", "PAY_3", "BILL_AMT3", "PAY_AMT3"),
+    ("August", "PAY_2", "BILL_AMT2", "PAY_AMT2"),
+    ("September", "PAY_0", "BILL_AMT1", "PAY_AMT1"),
+]
+
+PAY_STATUS = {
+    -2: "No usage",
+    -1: "Paid in full",
+    0: "Minimum paid (revolving)",
+    1: "1 month late",
+    2: "2 months late",
+    3: "3 months late",
+    4: "4 months late",
+    5: "5 months late",
+    6: "6 months late",
+    7: "7 months late",
+    8: "8 months late",
+    9: "9+ months late",
+}
+SEX = {1: "Male", 2: "Female"}
+EDUCATION = {1: "Graduate school", 2: "University", 3: "High school", 4: "Other"}
+MARRIAGE = {1: "Married", 2: "Single", 3: "Other"}
+
+FEATURE_LABELS = {
+    "LIMIT_BAL": "Credit limit",
+    "SEX": "Gender",
+    "EDUCATION": "Education",
+    "MARRIAGE": "Marital status",
+    "AGE": "Age",
+}
+for _month, _pay, _bill, _amt in HISTORY_MONTHS:
+    FEATURE_LABELS[_pay] = f"{_month} repayment status"
+    FEATURE_LABELS[_bill] = f"{_month} statement balance"
+    FEATURE_LABELS[_amt] = f"{_month} payment made"
+
+
+def status_label(code) -> str:
+    try:
+        code = int(code)
+    except (TypeError, ValueError):
+        return str(code)
+    return PAY_STATUS.get(code, f"Code {code}")
+
+
+@st.cache_data(show_spinner="Scoring accounts...")
+def get_scored() -> pd.DataFrame:
+    """Sample customers with probability, band and decision columns."""
+    return predict_dataframe(load_model(), load_sample_customers())
+
+
+def _original_feature(transformed_name: str) -> str:
+    original = transformed_name.split("__", 1)[1] if "__" in transformed_name else transformed_name
+    for feature in FEATURES:
+        if original == feature or original.startswith(feature + "_"):
+            return feature
+    return original
+
+
+@st.cache_data(show_spinner=False)
+def global_importance() -> pd.DataFrame:
+    """Model-wide XGBoost importance, summed back to the 23 raw inputs."""
+    model = load_model()
+    pre = model.named_steps["preprocessor"]
+    xgb = model.named_steps["model"]
+    names = pre.get_feature_names_out()
+    rows = [(_original_feature(n), float(v)) for n, v in zip(names, xgb.feature_importances_)]
+    out = (
+        pd.DataFrame(rows, columns=["Feature", "Importance"])
+        .groupby("Feature", as_index=False)["Importance"].sum()
+        .sort_values("Importance", ascending=False)
+        .reset_index(drop=True)
+    )
+    out["Importance"] = out["Importance"] / out["Importance"].sum()
+    return out
